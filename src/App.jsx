@@ -6,17 +6,28 @@ import { TURNS } from './constant'
 import { checkWinnerFrom,checkEndGames } from './logic/board.js'
 import { WinnerModal } from './components/WinnerModal.jsx'
 import { BoardTable } from './components/BoardTable.jsx'
+import { saveGameToStorage,resetGameStorage} from './logic/storage/index.js'
 
 function App() {
-  const [board,setBoard]= useState((Array(9).fill(null)))
-  const [turn,setTurn]=useState(TURNS.x)
+  const [board, setBoard] = useState(() => {
+    const boardFromStorage = window.localStorage.getItem('board')
+    if (boardFromStorage) return JSON.parse(boardFromStorage)
+    return Array(9).fill(null)
+  })
+  const [turn,setTurn]=useState(()=>{
+    const turnFromStorage=window.localStorage.getItem('turn')
+    return turnFromStorage?? TURNS.x
+  })
+
   const [winner,setWinner]=useState(null)
-  
-  
-  const resetGame=()=>{
+
+
+  const resetGame = () => {
     setBoard(Array(9).fill(null))
     setTurn(TURNS.x)
     setWinner(null)
+
+    resetGameStorage()
   }
 
 
@@ -28,7 +39,10 @@ function App() {
 
     const newTurn=turn===TURNS.x? TURNS.o:TURNS.x
     setTurn(newTurn)
-
+    saveGameToStorage({
+      board: newBoard,
+      turn: newTurn
+    })
     const newWinner=checkWinnerFrom(newBoard)
     if(newWinner){
       confetti()
@@ -47,7 +61,7 @@ function App() {
           <Square isSelected={turn===TURNS.o}>{TURNS.o}</Square>
       </section>
       <WinnerModal winner={winner} resetGame={resetGame}/>
-    
+
    </main>
   )
 }
